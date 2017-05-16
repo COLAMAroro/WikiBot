@@ -49,6 +49,7 @@ def on_message(message):
 def printout(message, query):
     wikipage = None
     lookup = True
+    disambiguation = False
     print("printout")
 
     try:
