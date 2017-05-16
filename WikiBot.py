@@ -26,7 +26,8 @@ def on_server_join(server):
 @asyncio.coroutine
 def on_message(message):
     if message.channel.is_private and message.author.id != client.user.id:
-        yield from printout(message, message.content)
+        lang, query = langset(message.content)
+        yield from printout(message, query, lang)
 
     else:
         ping = "<@" + client.user.id + ">"
@@ -35,21 +36,24 @@ def on_message(message):
             print("I'm called!")
             
             toretract = len(ping)
-            query = message.content[toretract:]
+            input = message.content[toretract:]
             
-            if query[0] == " ":
-                query = query[1:]
+            while input[0] == " ":
+                input = input[1:]
             
-            print("Query = " + query)
+            print("input = " + input)
             
-            yield from printout(message, query)
+            lang, query = langset(input)
+            yield from printout(message, query, lang)
 
 
 @asyncio.coroutine
-def printout(message, query):
+def printout(message, query, lang):
     wikipage = None
     lookup = True
     print("printout")
+
+    wikipedia.set_lang(lang)
 
     try:
         wikipage = wikipedia.page(query)
@@ -77,6 +81,17 @@ def printout(message, query):
             em.set_author(name=client.user.name, icon_url="https://wikibot.rondier.io")
             yield from client.send_message(message.channel, embed=em)
             yield from client.send_message(message.channel, "More at " + wikipage.url)
+
+    wikipedia.set_lang("en")
+
+def langset(input):
+    if len(input) > 4 and input[0] == '!':
+        lang = input[1] + input[2]
+        query = input [4:len(input)]
+        return (lang, query)
+    else:
+        return ("en", input)
+        
 
 client.run(token)
 
