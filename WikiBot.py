@@ -7,6 +7,7 @@ language = "en"
 
 client = discord.Client()
 
+
 @client.event
 @asyncio.coroutine
 def on_ready():
@@ -14,17 +15,18 @@ def on_ready():
     print(client.user.name)
     print(client.user.id)
 
+
 @client.event
 @asyncio.coroutine
 def on_server_join(server):
     yield from client.send_message(server.default_channel, "Oi, i'm the WikiBot! https://en.wikipedia.org/wiki/Main_Page")
 
+
 @client.event
 @asyncio.coroutine
 def on_message(message):
     if message.channel.is_private and message.author.id != client.user.id:
-        printout(message, message.content)
-
+        yield from printout(message, message.content)
 
     else:
         ping = "<@" + client.user.id + ">"
@@ -40,11 +42,14 @@ def on_message(message):
             
             print("Query = " + query)
             
-            printout(message, query)
-                
+            yield from printout(message, query)
+
+
+@asyncio.coroutine
 def printout(message, query):
     wikipage = None
     lookup = True
+    print("printout")
 
     try:
         wikipage = wikipedia.page(query)
@@ -56,12 +61,12 @@ def printout(message, query):
     except Exception:
         lookup = False
                 
-    if wikipage == None and lookup:
+    if wikipage is None and lookup:
         wikipage = wikipedia.suggest(query)
             
-    if wikipage == None and lookup:
+    if wikipage is None and lookup:
         yield from client.send_message(message.channel, "Sorry, cannot find " + query + " :v")
-    elif (not lookup):
+    elif not lookup:
         yield from client.send_message(message.channel, "Something went wrong. Try to be more specific in search, or maybe I can't reach Wikipedia")
     else:
         imglist = wikipage.images
@@ -74,3 +79,4 @@ def printout(message, query):
             yield from client.send_message(message.channel, "More at " + wikipage.url)
 
 client.run(token)
+
