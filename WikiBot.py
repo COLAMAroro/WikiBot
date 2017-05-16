@@ -55,16 +55,20 @@ def printout(message, query):
         wikipage = wikipedia.page(query)
         print("I found directly")            
                 
-    except wikipedia.exceptions.PageError:
+    except wikipedia.PageError:
         print("Can't access by default. Trying to search")
+        
+    except wikipedia.DisambiguationError:
+        yield from client.send_message(message.channel, "This query leads to a disambiguation page. Please be more specific.")
+        disambiguation = True
             
     except Exception:
         lookup = False
                 
-    if wikipage is None and lookup:
+    if wikipage is None and lookup and not disambiguation:
         wikipage = wikipedia.suggest(query)
             
-    if wikipage is None and lookup:
+    if wikipage is None and lookup and not disambiguation:
         yield from client.send_message(message.channel, "Sorry, cannot find " + query + " :v")
     elif not lookup:
         yield from client.send_message(message.channel, "Something went wrong. Try to be more specific in search, or maybe I can't reach Wikipedia")
@@ -76,7 +80,7 @@ def printout(message, query):
             em = discord.Embed(title=wikipage.title, description=wikipedia.summary(query, sentences=2), colour=0x2DAAED, url=wikipage.url, image=imglist[0])
             em.set_author(name=client.user.name, icon_url="https://wikibot.rondier.io")
             yield from client.send_message(message.channel, embed=em)
-            yield from client.send_message(message.channel, "More at " + wikipage.url)
+            yield from client.send_message(message.channel, "More at <" + wikipage.url + ">")
 
 client.run(token)
 
