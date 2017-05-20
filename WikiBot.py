@@ -84,6 +84,7 @@ def printout(message, query, lang):
             yield from client.send_message(message.channel, embed=em)
             yield from client.send_message(message.channel, "More at <" + wikipage.url + ">")
 
+
     wikipedia.set_lang("en")
 
 @asyncio.coroutine
@@ -94,7 +95,6 @@ def setlang(query):
         lang = query[1] + query[2]
         nquery = query[4:]
         return (lang, nquery)
-
 
 client.run(token)
 
