@@ -1,7 +1,7 @@
 import discord    
 import asyncio
 import wikipedia
-from token import *
+from tkn import *
 
 language = "en"
 
@@ -15,19 +15,16 @@ def on_ready():
     print(client.user.name)
     print(client.user.id)
 
-
 @client.event
 @asyncio.coroutine
 def on_server_join(server):
     yield from client.send_message(server.default_channel, "Oi, i'm the WikiBot! https://en.wikipedia.org/wiki/Main_Page")
 
-
 @client.event
 @asyncio.coroutine
 def on_message(message):
     if message.channel.is_private and message.author.id != client.user.id:
-        lang, query = langset(message.content)
-        yield from printout(message, query, lang)
+        yield from printout(message, message.content)
 
     else:
         ping = "<@" + client.user.id + ">"
@@ -36,14 +33,14 @@ def on_message(message):
             print("I'm called!")
             
             toretract = len(ping)
-            input = message.content[toretract:]
-            
-            while input[0] == " ":
-                input = input[1:]
-            
-            print("input = " + input)
-            
-            lang, query = langset(input)
+            query = message.content[toretract:]
+
+            while len(query) != 0 and query[0] == " ":
+                query = query[1:]
+
+            (lang, query) = yield from setlang(query)
+
+            print("Query = " + query)
             yield from printout(message, query, lang)
 
 
@@ -51,6 +48,7 @@ def on_message(message):
 def printout(message, query, lang):
     wikipage = None
     lookup = True
+    disambiguation = False
     print("printout")
 
     wikipedia.set_lang(lang)
@@ -59,19 +57,23 @@ def printout(message, query, lang):
         wikipage = wikipedia.page(query)
         print("I found directly")            
                 
-    except wikipedia.exceptions.PageError:
+    except wikipedia.PageError:
         print("Can't access by default. Trying to search")
+        
+    except wikipedia.DisambiguationError:
+        yield from client.send_message(message.channel, "This query leads to a disambiguation page. Please be more specific.")
+        disambiguation = True
             
     except Exception:
         lookup = False
                 
-    if wikipage is None and lookup:
+    if wikipage is None and lookup and not disambiguation:
         wikipage = wikipedia.suggest(query)
             
-    if wikipage is None and lookup:
+    if wikipage is None and lookup and not disambiguation:
         yield from client.send_message(message.channel, "Sorry, cannot find " + query + " :v")
     elif not lookup:
-        yield from client.send_message(message.channel, "Something went wrong. Try to be more specific in search, or maybe I can't reach Wikipedia")
+        yield from client.send_message(message.channel, "Something went wrong. Check the language, or maybe I can't reach Wikipedia")
     else:
         imglist = wikipage.images
         if len(imglist) == 0:
@@ -80,18 +82,19 @@ def printout(message, query, lang):
             em = discord.Embed(title=wikipage.title, description=wikipedia.summary(query, sentences=2), colour=0x2DAAED, url=wikipage.url, image=imglist[0])
             em.set_author(name=client.user.name, icon_url="https://wikibot.rondier.io")
             yield from client.send_message(message.channel, embed=em)
-            yield from client.send_message(message.channel, "More at " + wikipage.url)
+            yield from client.send_message(message.channel, "More at <" + wikipage.url + ">")
 
     wikipedia.set_lang("en")
 
-def langset(input):
-    if len(input) > 4 and input[0] == '!':
-        lang = input[1] + input[2]
-        query = input [4:len(input)]
-        return (lang, query)
+@asyncio.coroutine
+def setlang(query):
+    if len(query) <= 4 or query[0] != '!' or query[3] != " ":
+        return ("en", query)
     else:
-        return ("en", input)
-        
+        lang = query[1] + query[2]
+        nquery = query[4:]
+        return (lang, nquery)
+
 
 client.run(token)
 
