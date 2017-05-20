@@ -24,6 +24,7 @@ def on_server_join(server):
 @asyncio.coroutine
 def on_message(message):
     if message.channel.is_private and message.author.id != client.user.id:
+        lang, query = yield from setlang(message.content)
         yield from printout(message, message.content)
 
     else:
