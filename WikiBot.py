@@ -25,7 +25,7 @@ def on_server_join(server):
 def on_message(message):
     if message.channel.is_private and message.author.id != client.user.id:
         lang, query = yield from setlang(message.content)
-        yield from printout(message, message.content)
+        yield from printout(message, message.content, lang)
 
     else:
         ping = "<@" + client.user.id + ">"
@@ -61,8 +61,13 @@ def printout(message, query, lang):
     except wikipedia.PageError:
         print("Can't access by default. Trying to search")
         
-    except wikipedia.DisambiguationError:
+    except wikipedia.DisambiguationError as e:
         yield from client.send_message(message.channel, "This query leads to a disambiguation page. Please be more specific.")
+        pagelist = "List of pages possible:\n```"
+        for page in e.options:
+            pagelist += page + '\n'
+        pagelist += "```"
+        yield from client.send_message(message.channel, pagelist)
         disambiguation = True
             
     except Exception:
@@ -70,20 +75,26 @@ def printout(message, query, lang):
                 
     if wikipage is None and lookup and not disambiguation:
         wikipage = wikipedia.suggest(query)
+        try:
+            wikipage = wikipedia.page(wikipage)
+        except wikipedia.exceptions.PageError:
+            wikipage = None
             
     if wikipage is None and lookup and not disambiguation:
         yield from client.send_message(message.channel, "Sorry, cannot find " + query + " :v")
     elif not lookup:
         yield from client.send_message(message.channel, "Something went wrong. Check the language, or maybe I can't reach Wikipedia")
     else:
+        print(type(wikipage))
         imglist = wikipage.images
         if len(imglist) == 0:
             em = discord.Embed(title=wikipage.title, description=wikipedia.summary(query, sentences=2), colour=0x2DAAED, url=wikipage.url)
         else:
             em = discord.Embed(title=wikipage.title, description=wikipedia.summary(query, sentences=2), colour=0x2DAAED, url=wikipage.url, image=imglist[0])
-            em.set_author(name=client.user.name, icon_url="https://wikibot.rondier.io")
-            yield from client.send_message(message.channel, embed=em)
-            yield from client.send_message(message.channel, "More at <" + wikipage.url + ">")
+        em.set_author(name="Wikipedia", url=wikipage.url, icon_url="https://upload.wikimedia.org/wikipedia/commons/5/53/Wikipedia-logo-en-big.png")
+        em.set_thumbnail(url="https://www.wikipedia.org/static/favicon/wikipedia.ico")
+        yield from client.send_message(message.channel, embed=em)
+        yield from client.send_message(message.channel, "More at <" + wikipage.url + ">")
 
 
     wikipedia.set_lang("en")
