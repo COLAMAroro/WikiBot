@@ -28,7 +28,7 @@ def on_message(message):
         yield from printout(message, message.content, lang)
 
     else:
-        ping = "<@" + client.user.id + ">"
+        ping = "<@!" + client.user.id + ">"
         if message.content.startswith(ping):
         
             print("I'm called!")
