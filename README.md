@@ -17,6 +17,8 @@ You can also join the official [Discord server](https://discord.gg/9M8rMe6)
 - [Discord.py](https://github.com/Rapptz/discord.py)
 - [Wikipedia](https://github.com/goldsmith/Wikipedia)
 
+- ***Doesn't work on Python 3.7+***
+
 ## Installation
 
 First of, make sure that you have all the requirements
