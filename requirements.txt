@@ -8,7 +8,7 @@ discord.py==0.16.12
 idna==2.8
 multidict==4.5.2
 requests==2.21.0
-soupsieve==1.9.5
+soupsieve==2.0
 urllib3==1.24.3
 websockets==3.4
 wikipedia==1.4.0
