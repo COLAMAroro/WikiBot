@@ -3,6 +3,11 @@ A Discord bot that search things on Wikipedia
 
 WikiBot is a Discord Bot using the Discord.py API Wrapper and the Wikipedia Wrapper
 
+# HEAD'S UP
+
+The project is basically dead, I have neither the time nor the motivation to fix it
+If you want to fork it to fix it, go for it. Probably just need to update the Discord.py version
+
 ## Test
 
 You can invite the WikiBot on your server simply by [Going to this link](https://discordapp.com/api/oauth2/authorize?client_id=313646227394920448&scope=bot&permissions=0)
